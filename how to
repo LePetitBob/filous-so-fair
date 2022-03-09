@@ -1,0 +1,11 @@
+usleep de 200 dans les boucles inf
+
+pair puis impair
+
+synchro initiale
+
+check mort dans main thread --> si mort var = 1, aff et join thread
+
+nb de repas MINIMUM (si plus, np)
+
+recoder une ft usleep. plein de petit plutot qu'un gros pour pouvoir break

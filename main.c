@@ -1,1 +1,59 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/03/09 16:24:22 by vduriez           #+#    #+#             */
+/*   Updated: 2022/03/09 21:08:12 by vduriez          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
+#include "philosophers.h"
+
+int	get_current_time(void)
+{
+	struct timeval	tv;
+
+	gettimeofday(&tv, NULL);
+	return ((1000000 * tv.tv_sec + tv.tv_usec) / 1000);
+}
+
+void	*thread_routine(void *arg)
+{
+	int		time;
+	int		time2;
+
+	time = (int)arg;
+	time2 = get_current_time();
+	printf("time of the day : %d\n", time2 - time);
+	pthread_exit(NULL);
+}
+
+int	main(int ac, char **av)
+{
+	int		time;
+	// int		time2;
+	pthread_t	thread[4];
+	(void)av;
+	(void)ac;
+	// if (ac > 5 || ac < 4)
+	// 	return (1);
+	time = get_current_time();
+	// time2 = get_current_time();
+	// printf("time of the day : %ld\n", time2 - time);
+	int i = 0;
+	while (i < 4)
+	{
+		pthread_create(&thread[i], NULL, thread_routine, &time);
+		i++;
+	}
+	i = 0;
+	while (i < 4)
+	{
+		pthread_join(thread[i], NULL);
+		i++;
+	}
+	return (0);
+}
