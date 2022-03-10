@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:24:22 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/09 21:08:12 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/10 22:58:56 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,32 +23,38 @@ int	get_current_time(void)
 void	*thread_routine(void *arg)
 {
 	int		time;
-	int		time2;
+	t_var	*vars;
 
-	time = (int)arg;
-	time2 = get_current_time();
-	printf("time of the day : %d\n", time2 - time);
+	vars = (t_var *)arg;
+	sleep(2);
+	time = get_current_time();
+	while (pthread_mutex_lock(&vars->philo.l_fork) != 0)
+		usleep(1);
+	printf("time of the day : %lu\n", time - vars->start);
 	pthread_exit(NULL);
 }
 
 int	main(int ac, char **av)
 {
-	int		time;
-	// int		time2;
-	pthread_t	thread[4];
+	int					time;
+	pthread_t			thread[4];
+	t_var				vars;
 	(void)av;
 	(void)ac;
 	// if (ac > 5 || ac < 4)
 	// 	return (1);
 	time = get_current_time();
-	// time2 = get_current_time();
-	// printf("time of the day : %ld\n", time2 - time);
 	int i = 0;
+	vars.start = time; // --> init struct
+	pthread_mutex_lock(&vars.philo.l_fork);
+	i = 0;
 	while (i < 4)
 	{
-		pthread_create(&thread[i], NULL, thread_routine, &time);
+		pthread_create(&thread[i], NULL, thread_routine, &vars);
 		i++;
 	}
+	sleep(1);
+	pthread_mutex_unlock(&vars.philo.l_fork);
 	i = 0;
 	while (i < 4)
 	{

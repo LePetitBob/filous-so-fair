@@ -6,13 +6,13 @@
 #    By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/09 17:31:00 by vduriez           #+#    #+#              #
-#    Updated: 2022/03/09 20:50:28 by vduriez          ###   ########.fr        #
+#    Updated: 2022/03/10 19:14:20 by vduriez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
 CC = clang
-FLAGS = -Wall -Wextra -Werror -pthread -fsanitize=thread
+FLAGS = -Wall -Wextra -Werror -pthread -g3 -fsanitize=thread
 NAME = philo
 INCLUDES = philosophers.h
 SRCS =	main.c
