@@ -6,22 +6,23 @@
 #    By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/09 17:31:00 by vduriez           #+#    #+#              #
-#    Updated: 2022/03/10 19:14:20 by vduriez          ###   ########.fr        #
+#    Updated: 2022/03/19 18:43:02 by vduriez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-CC = clang
+CC = gcc
 FLAGS = -Wall -Wextra -Werror -pthread -g3 -fsanitize=thread
 NAME = philo
 INCLUDES = philosophers.h
-SRCS =	main.c
+SRCS =	main.c check_args.c ft_str.c ft_atoi.c \
+		check_routine.c
 
 OBJ = $(SRCS:.c=.o)
 
 all:		$(NAME) bonus
 
-$(NAME):	$(INCLUDES) $(SRCS)
+$(NAME):	$(INCLUDES) $(OBJS)
 		$(CC) $(FLAGS) $(SRCS) -o $(NAME)
 
 clean:
