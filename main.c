@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:24:22 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/19 18:39:17 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/21 23:14:02 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,55 +20,50 @@ int	get_current_time(void)
 	return ((1000000 * tv.tv_sec + tv.tv_usec) / 1000);
 }
 
-void	grab_forks_eat(t_var *vars, size_t id)
+void	grab_forks_eat(t_var *vars, size_t id, t_philo *self)
 {
-	t_philo	*self;
-	// t_philo	*prev;
 	pthread_mutex_t	*right;
 	pthread_mutex_t	*left;
 	size_t	time;
+	size_t	timetodie;
 
-	self = vars->philo;
-	while (self->id != id)
-		self = self->next;
 	right = self->id & 1 ? &self->fork : &self->prev->fork;
 	left = self->id & 1 ? &self->prev->fork : &self->fork;
+	timetodie = get_current_time() - self->last_meal;
+	if (timetodie >= vars->ttd)
+	{
+		pthread_mutex_lock(&vars->stop);
+		if (vars->isded < 0)
+			vars->isded = id;
+		pthread_mutex_unlock(&vars->stop);
+		return ;
+	}
 	pthread_mutex_lock(left);
-	time = get_current_time();
-	pthread_mutex_lock(&vars->print);
-	printf("%.4lu %lu has taken a fork\n", time - vars->start, id);
-	pthread_mutex_unlock(&vars->print);
+	if (!ft_print_fork(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+	{
+		pthread_mutex_unlock(left);
+		return ;
+	}
 	pthread_mutex_lock(right);
+	if (!ft_print_fork(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+	{
+		pthread_mutex_unlock(left);
+		pthread_mutex_unlock(right);
+		return ;
+	}
 	time = get_current_time();
-	pthread_mutex_lock(&vars->print);
-	printf("%.4lu %lu has taken a fork\n", time - vars->start, id);
-	pthread_mutex_unlock(&vars->print);
-	time = get_current_time();
-	pthread_mutex_lock(&vars->print);
-	printf("%.4lu %lu is eating\n", time - vars->start, id);
-	pthread_mutex_unlock(&vars->print);
-	//TODO
-	// pthread_mutex_lock(&vars->death);
-	// if (vars-> isded)
-	// 	cleanexit
-	// pthread_mutex_unlock(&vars->death);
-	//TODO
-	self->last_meal = (size_t)get_current_time;
-	microrests(vars, id, vars->tte); //TODO	microsleep + checks
-	// if (ft_urests(vars, self) == -1)
-	// {
-	// 	clean_exit;
-	// }
+	if (!ft_print_eating(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+		return ;
+	self->last_meal = get_current_time();
+	microrests(vars, id, vars->tte);
 	pthread_mutex_unlock(left);
 	pthread_mutex_unlock(right);
-}
-
-int	check_routine(t_var *vars, size_t id)
-{
-	(void)vars;
-	(void)id;
-
-	return (0);
+	self->nb_of_meal++;
+	// pthread_mutex_lock(&vars->yummytummyfullybelly);
+	if (self->nb_of_meal == vars->meals_max)
+	if (self->nb_of_meal == vars->meals_max)
+		vars->imfull++;
+	// pthread_mutex_unlock(&vars->yummytummyfullybelly);
 }
 
 void	*philo_routine(void *arg)
@@ -76,44 +71,61 @@ void	*philo_routine(void *arg)
 	int		time;
 	size_t	id;
 	t_var	*vars;
+	t_philo	*tmp;
 
 	vars = (t_var *)arg;
 	pthread_mutex_lock(&vars->whoami);
 	id = vars->count + 1;
 	vars->count++;
-	printf("self = %lu\n", id);
 	pthread_mutex_unlock(&vars->whoami);
+	tmp = vars->philo;
+	while (tmp->id != id)
+		tmp = tmp->next;
+	tmp->last_meal = get_current_time();
 	pthread_mutex_lock(&vars->starting_blocks);
 	pthread_mutex_unlock(&vars->starting_blocks);
 	if (vars->number % 2 == 0)
 	{
 		if (id % 2 == 0)
-			usleep(1000 * vars->tte);
+			microrests(vars, id, vars->tte);
 	}
 	else
 	{
 		if (id % 3 == 0)
-			usleep(1000 * vars->tte);
+			microrests(vars, id, vars->tte);
 		if (id % 3 == 2)
-			usleep(1000 * vars->tte * 2);
+			microrests(vars, id, vars->tte * 2);
 	}
-	// int i = 0;
-	while (1)//TODO	-->not all philos have had their min nb of meals
+	while (1)
 	{
-		grab_forks_eat(vars, id);
-		time = get_current_time();
-		printf("%.4lu %lu is sleeping\n", time - vars->start, id);
-		microrests(vars, id, vars->tts);
-		pthread_mutex_lock(&vars->death);
-		if (vars->isded != 0)
+		pthread_mutex_lock(&vars->stop);
+		if ((vars->meals_max != 0 && vars->imfull >= vars->number) || vars->isded > 0)
 		{
-			time = get_current_time();
-			pthread_mutex_lock(&vars->print);
-			printf("%.4lu %d died\n", time - vars->start, vars->isded);
-			pthread_mutex_unlock(&vars->print);
+			pthread_mutex_unlock(&vars->stop);
 			break ;
 		}
-		pthread_mutex_unlock(&vars->death);
+		pthread_mutex_unlock(&vars->stop);
+		grab_forks_eat(vars, id, tmp);
+		if (ft_print_ded(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+			return (NULL);
+		time = get_current_time() - tmp->last_meal;
+		if (time >= vars->ttd)
+		{
+			pthread_mutex_lock(&vars->stop);
+			if (vars->isded <= 0)
+				vars->isded = tmp->id;
+			pthread_mutex_unlock(&vars->stop);
+			ft_print_ded(vars, id);
+			return (NULL);
+		}
+		if (!ft_print_sleep(vars, id))
+		{
+			ft_print_ded(vars, id);
+			return (NULL);
+		}
+		microrests(vars, id, vars->tts);
+		if (ft_print_ded(vars, id))
+			return (NULL);
 	}
 	return (NULL);
 }
@@ -192,11 +204,9 @@ void	init_philos(t_var *vars)
 	i = -1;
 	while (++i < vars->number)
 		pthread_create(&vars->philo_th[i], NULL, philo_routine, vars);
-	usleep(50000);
+	usleep(5000);
 	vars->start = get_current_time();
 	pthread_mutex_unlock(&vars->starting_blocks);
-	while (1)
-		check_routine(vars, 0);
 	i = -1;
 	while (++i < vars->number)
 		pthread_join(vars->philo_th[i], NULL);
@@ -214,8 +224,10 @@ void	init_threads(char **av, t_var *vars)
 	vars->ttd = ft_atoi(av[2]);
 	vars->tte = ft_atoi(av[3]);
 	vars->tts = ft_atoi(av[4]);
+	vars->meals_max = -1;
 	if (av[5])
 		vars->meals_max = ft_atoi(av[5]);
+	vars->imfull = 0;
 	init_philos(vars);
 }
 

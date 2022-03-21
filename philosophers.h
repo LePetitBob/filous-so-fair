@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 17:00:37 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/19 18:37:16 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/21 16:51:30 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,9 @@ typedef struct s_var
 	pthread_mutex_t		starting_blocks;
 	pthread_mutex_t		whoami;
 	pthread_mutex_t		print;
-	pthread_mutex_t		death;
+	pthread_mutex_t		stop;
+	pthread_mutex_t		yummytummyfullybelly;
+	int					imfull;
 	int					isded;
 	int					number;
 	size_t				count;
@@ -57,5 +59,9 @@ int					get_current_time(void);
 int					ft_strlen(char *s);
 char				*ft_strdup(const char *s1);
 long long			ft_atoi(const char *str);
+int					ft_print_eating(t_var *vars, size_t id);
+int					ft_print_fork(t_var *vars, size_t id);
+int					ft_print_sleep(t_var *vars, size_t id);
+int					ft_print_ded(t_var *vars, size_t id);
 
 #endif

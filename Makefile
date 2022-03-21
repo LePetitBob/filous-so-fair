@@ -6,7 +6,7 @@
 #    By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/09 17:31:00 by vduriez           #+#    #+#              #
-#    Updated: 2022/03/19 18:43:02 by vduriez          ###   ########.fr        #
+#    Updated: 2022/03/20 21:37:10 by vduriez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,15 +18,15 @@ INCLUDES = philosophers.h
 SRCS =	main.c check_args.c ft_str.c ft_atoi.c \
 		check_routine.c
 
-OBJ = $(SRCS:.c=.o)
+OBJS = $(SRCS:.c=.o)
 
 all:		$(NAME) bonus
 
 $(NAME):	$(INCLUDES) $(OBJS)
-		$(CC) $(FLAGS) $(SRCS) -o $(NAME)
+		$(CC) $(FLAGS) $(OBJS) -o $(NAME)
 
 clean:
-		rm -rf $(OBJ)
+		rm -rf $(OBJS)
 
 fclean: clean
 		rm -rf $(NAME)
