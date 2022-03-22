@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 17:00:37 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/21 16:51:30 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/22 05:43:59 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 # include <stdlib.h>
 # include <unistd.h>
 # include <sys/time.h>
+# define FREE 0
+# define USED 1
 
 typedef struct s_philo
 {
@@ -24,6 +26,7 @@ typedef struct s_philo
 	size_t			id;
 	size_t			last_meal;
 	size_t			nb_of_meal;
+	int				fork_usage;
 	struct s_philo	*next;
 	struct s_philo	*prev;
 }				t_philo;
@@ -63,5 +66,6 @@ int					ft_print_eating(t_var *vars, size_t id);
 int					ft_print_fork(t_var *vars, size_t id);
 int					ft_print_sleep(t_var *vars, size_t id);
 int					ft_print_ded(t_var *vars, size_t id);
+int					ft_print_thinking(t_var *vars, size_t id);
 
 #endif

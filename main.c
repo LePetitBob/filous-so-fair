@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 16:24:22 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/21 23:14:02 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/22 20:30:20 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,10 @@ int	get_current_time(void)
 	return ((1000000 * tv.tv_sec + tv.tv_usec) / 1000);
 }
 
-void	grab_forks_eat(t_var *vars, size_t id, t_philo *self)
+int	check_ded(t_var *vars, t_philo *self, size_t id)
 {
-	pthread_mutex_t	*right;
-	pthread_mutex_t	*left;
-	size_t	time;
-	size_t	timetodie;
+	size_t			timetodie;
 
-	right = self->id & 1 ? &self->fork : &self->prev->fork;
-	left = self->id & 1 ? &self->prev->fork : &self->fork;
 	timetodie = get_current_time() - self->last_meal;
 	if (timetodie >= vars->ttd)
 	{
@@ -36,78 +31,97 @@ void	grab_forks_eat(t_var *vars, size_t id, t_philo *self)
 		if (vars->isded < 0)
 			vars->isded = id;
 		pthread_mutex_unlock(&vars->stop);
-		return ;
+		return (1);
 	}
-	pthread_mutex_lock(left);
-	if (!ft_print_fork(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+	return (0);
+}
+
+void	unlock_lr(pthread_mutex_t *left, pthread_mutex_t *right, t_philo *self)
+{
+	pthread_mutex_unlock(left);
+	pthread_mutex_unlock(right);
+	self->fork_usage = FREE;
+	self->prev->fork_usage = FREE;
+}
+
+void	decide_first_fork(t_philo *self, pthread_mutex_t *fork[2])
+{
+	fork[0] = &self->prev->fork;
+	if (self->id % 2 == 1)
+		fork[0] = &self->fork;
+	fork[1] = &self->fork;
+	if (self->id % 2 == 1)
+		fork[1] = &self->prev->fork;
+	if (self->id & 1)
+		self->fork_usage = USED;
+	else
+		self->prev->fork_usage = USED;
+	pthread_mutex_lock(fork[1]);
+}
+
+int	check_meals(t_var *vars)
+{
+	if (vars->meals_max != 0 && vars->imfull >= vars->number)
+		return (1);
+	return (0);
+}
+
+void	grab_forks_eat(t_var *vars, size_t id, t_philo *self)
+{
+	pthread_mutex_t	*fork[2];
+
+	decide_first_fork(self, fork);
+	if (check_ded(vars, self, id))
+		return ;
+	if (!ft_print_fork(vars, id) || check_meals(vars))
 	{
-		pthread_mutex_unlock(left);
+		pthread_mutex_unlock(fork[1]);
+		if (self->id & 1)
+			self->fork_usage = FREE;
+		else
+			self->prev->fork_usage = FREE;
 		return ;
 	}
-	pthread_mutex_lock(right);
-	if (!ft_print_fork(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+	pthread_mutex_lock(fork[0]);
+	if (self->id & 1)
+		self->prev->fork_usage = USED;
+	else
+		self->fork_usage = USED;
+	if (!ft_print_fork(vars, id) || check_meals(vars))
 	{
-		pthread_mutex_unlock(left);
-		pthread_mutex_unlock(right);
+		unlock_lr(fork[1], fork[0], self);
 		return ;
 	}
-	time = get_current_time();
-	if (!ft_print_eating(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
+	if (!ft_print_eating(vars, id) || check_meals(vars))
 		return ;
 	self->last_meal = get_current_time();
 	microrests(vars, id, vars->tte);
-	pthread_mutex_unlock(left);
-	pthread_mutex_unlock(right);
+	unlock_lr(fork[1], fork[0], self);
 	self->nb_of_meal++;
-	// pthread_mutex_lock(&vars->yummytummyfullybelly);
-	if (self->nb_of_meal == vars->meals_max)
 	if (self->nb_of_meal == vars->meals_max)
 		vars->imfull++;
-	// pthread_mutex_unlock(&vars->yummytummyfullybelly);
 }
 
-void	*philo_routine(void *arg)
+int	thinking_in_progress(t_var *vars, t_philo *tmp)
 {
-	int		time;
-	size_t	id;
-	t_var	*vars;
-	t_philo	*tmp;
+	while ((tmp->fork_usage == USED
+			&& tmp->prev->fork_usage == USED) || vars->isded <= 0)
+	{
+		if (check_ded(vars, tmp, tmp->id))
+			break ;
+		usleep(200);
+	}
+}
 
-	vars = (t_var *)arg;
-	pthread_mutex_lock(&vars->whoami);
-	id = vars->count + 1;
-	vars->count++;
-	pthread_mutex_unlock(&vars->whoami);
-	tmp = vars->philo;
-	while (tmp->id != id)
-		tmp = tmp->next;
-	tmp->last_meal = get_current_time();
-	pthread_mutex_lock(&vars->starting_blocks);
-	pthread_mutex_unlock(&vars->starting_blocks);
-	if (vars->number % 2 == 0)
-	{
-		if (id % 2 == 0)
-			microrests(vars, id, vars->tte);
-	}
-	else
-	{
-		if (id % 3 == 0)
-			microrests(vars, id, vars->tte);
-		if (id % 3 == 2)
-			microrests(vars, id, vars->tte * 2);
-	}
+void	routine_loop(t_var *vars, t_philo *tmp)
+{
+	size_t	time;
+
 	while (1)
 	{
-		pthread_mutex_lock(&vars->stop);
-		if ((vars->meals_max != 0 && vars->imfull >= vars->number) || vars->isded > 0)
-		{
-			pthread_mutex_unlock(&vars->stop);
-			break ;
-		}
-		pthread_mutex_unlock(&vars->stop);
-		grab_forks_eat(vars, id, tmp);
-		if (ft_print_ded(vars, id) || (vars->meals_max != 0 && vars->imfull >= vars->number))
-			return (NULL);
+		grab_forks_eat(vars, tmp->id, tmp);
+		if (ft_print_ded(vars, tmp->id) || check_meals(vars))
+			return ;
 		time = get_current_time() - tmp->last_meal;
 		if (time >= vars->ttd)
 		{
@@ -115,18 +129,78 @@ void	*philo_routine(void *arg)
 			if (vars->isded <= 0)
 				vars->isded = tmp->id;
 			pthread_mutex_unlock(&vars->stop);
-			ft_print_ded(vars, id);
-			return (NULL);
+			ft_print_ded(vars, tmp->id);
+			return ;
 		}
-		if (!ft_print_sleep(vars, id))
-		{
-			ft_print_ded(vars, id);
-			return (NULL);
-		}
-		microrests(vars, id, vars->tts);
-		if (ft_print_ded(vars, id))
-			return (NULL);
+		if (!ft_print_sleep(vars, tmp->id) || ft_print_ded(vars, tmp->id))
+			return ;
+		microrests(vars, tmp->id, vars->tts);
+		if (!ft_print_thinking(vars, tmp->id) || ft_print_ded(vars, tmp->id))
+			return ;
+		thinking_in_progress(vars, tmp);
 	}
+}
+
+void	delay_to_sync(t_var *vars, size_t id)
+{
+	if (vars->number % 2 == 0)
+	{
+		if (id % 2 == 0)
+			usleep(20);
+	}
+	else
+	{
+		if (id % 3 == 0)
+			usleep(20);
+		if (id % 3 == 2)
+			usleep(40);
+	}
+}
+
+void	only_wan(t_var *vars)
+{
+	size_t			timetodie;
+
+	timetodie = get_current_time() - vars->start;
+	pthread_mutex_lock(&vars->philo->fork);
+	ft_print_fork(vars, 1);
+	while (timetodie < vars->ttd)
+	{
+		pthread_mutex_lock(&vars->stop);
+		vars->isded = 1;
+		pthread_mutex_unlock(&vars->stop);
+		usleep(200);
+		timetodie = get_current_time() - vars->start;
+	}
+	pthread_mutex_unlock(&vars->philo->fork);
+	ft_print_ded(vars, 1);
+}
+
+void	*philo_routine(void *arg)
+{
+	t_var	*vars;
+	t_philo	*tmp;
+	size_t	id;
+	int		time;
+
+	vars = (t_var *)arg;
+	pthread_mutex_lock(&vars->whoami);
+	id = vars->count + 1;
+	vars->count++;
+	tmp = vars->philo;
+	pthread_mutex_unlock(&vars->whoami);
+	while (tmp->id != id)
+		tmp = tmp->next;
+	tmp->last_meal = get_current_time();
+	pthread_mutex_lock(&vars->starting_blocks);
+	pthread_mutex_unlock(&vars->starting_blocks);
+	if (vars->number == 1)
+	{
+		only_wan(vars);
+		return (NULL);
+	}
+	delay_to_sync(vars, id);
+	routine_loop(vars, tmp);
 	return (NULL);
 }
 
@@ -155,6 +229,7 @@ t_philo	*ft_create_elem(int id)
 		return (NULL);
 	new->id = id;
 	new->last_meal = 0;
+	new->fork_usage = FREE;
 	new->next = NULL;
 	new->prev = NULL;
 	return (new);
@@ -204,7 +279,6 @@ void	init_philos(t_var *vars)
 	i = -1;
 	while (++i < vars->number)
 		pthread_create(&vars->philo_th[i], NULL, philo_routine, vars);
-	usleep(5000);
 	vars->start = get_current_time();
 	pthread_mutex_unlock(&vars->starting_blocks);
 	i = -1;
