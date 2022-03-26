@@ -6,17 +6,18 @@
 #    By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/09 17:31:00 by vduriez           #+#    #+#              #
-#    Updated: 2022/03/26 18:11:47 by vduriez          ###   ########.fr        #
+#    Updated: 2022/03/26 20:01:13 by vduriez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pthread -g3 #-fsanitize=thread
+CFLAGS = -Wall -Wextra -Werror -pthread #-g3 -fsanitize=undefined -fsanitize=leak -fsanitize=address
 NAME = philo
 INCLUDES = philosophers.h
 SRCS =	main.c check_args.c ft_str.c ft_atoi.c \
-		check_routine.c
+		check_routine.c cl_creation.c norme_eating.c \
+		routine_checks.c routine_eat.c
 
 OBJS = $(SRCS:.c=.o)
 
