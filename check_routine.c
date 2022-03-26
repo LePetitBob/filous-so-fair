@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/15 11:47:44 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/22 05:41:18 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/26 17:07:32 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,13 +120,13 @@ int	ft_print_ded(t_var *vars, size_t id)
 	pthread_mutex_lock(&vars->stop);
 	if (vars->isded > 0)
 	{
-		pthread_mutex_lock(&vars->print);
-		if (vars->isded == id)
+		if (vars->isded == (int)id)
 		{
 			time = get_current_time();
+			pthread_mutex_lock(&vars->print);
 			printf("%.4lu %d died\n", time - vars->start, vars->isded);
+			pthread_mutex_unlock(&vars->print);
 		}
-		pthread_mutex_unlock(&vars->print);
 		pthread_mutex_unlock(&vars->stop);
 		return (1);
 	}

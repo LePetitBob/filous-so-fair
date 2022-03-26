@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 17:00:37 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/22 05:43:59 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/26 18:17:25 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,16 +17,14 @@
 # include <stdlib.h>
 # include <unistd.h>
 # include <sys/time.h>
-# define FREE 0
-# define USED 1
 
 typedef struct s_philo
 {
 	pthread_mutex_t	fork;
+	pthread_mutex_t	eating;
 	size_t			id;
 	size_t			last_meal;
 	size_t			nb_of_meal;
-	int				fork_usage;
 	struct s_philo	*next;
 	struct s_philo	*prev;
 }				t_philo;
@@ -36,10 +34,9 @@ typedef struct s_var
 	t_philo				*philo;
 	pthread_t			*philo_th;
 	pthread_mutex_t		starting_blocks;
-	pthread_mutex_t		whoami;
+	// pthread_mutex_t		whoami;
 	pthread_mutex_t		print;
 	pthread_mutex_t		stop;
-	pthread_mutex_t		yummytummyfullybelly;
 	int					imfull;
 	int					isded;
 	int					number;
@@ -67,5 +64,6 @@ int					ft_print_fork(t_var *vars, size_t id);
 int					ft_print_sleep(t_var *vars, size_t id);
 int					ft_print_ded(t_var *vars, size_t id);
 int					ft_print_thinking(t_var *vars, size_t id);
+void				free_everything(t_var *vars);
 
 #endif
