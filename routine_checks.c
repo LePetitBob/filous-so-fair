@@ -6,11 +6,19 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/15 11:47:44 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/26 19:34:20 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/28 13:58:33 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
+
+void	is_it_ded_yet(t_var *vars, size_t id)
+{
+	pthread_mutex_lock(&vars->stop);
+	if (vars->isded < 0)
+		vars->isded = id;
+	pthread_mutex_unlock(&vars->stop);
+}
 
 void	microrests(t_var *vars, size_t id, size_t ttw)
 {
@@ -27,13 +35,12 @@ void	microrests(t_var *vars, size_t id, size_t ttw)
 	timediff = get_current_time() - rest_start;
 	while (timediff < ttw)
 	{
+		if (check_meals(vars))
+			return ;
 		if (timetodie >= vars->ttd)
 		{
-			pthread_mutex_lock(&vars->stop);
-			if (vars->isded < 0)
-				vars->isded = id;
-			pthread_mutex_unlock(&vars->stop);
-			break ;
+			is_it_ded_yet(vars, id);
+			return ;
 		}
 		usleep(200);
 		timediff = get_current_time() - rest_start;

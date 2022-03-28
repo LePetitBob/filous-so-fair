@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/15 11:47:44 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/26 20:06:01 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/28 15:23:54 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,10 @@ void	*philo_routine(void *arg)
 
 int	ft_print_ded(t_var *vars, size_t id)
 {
+	int		i;
 	size_t	time;
 
+	i = check_meals(vars);
 	pthread_mutex_lock(&vars->stop);
 	if (vars->isded > 0)
 	{
@@ -52,7 +54,9 @@ int	ft_print_ded(t_var *vars, size_t id)
 		{
 			time = get_current_time();
 			pthread_mutex_lock(&vars->print);
-			printf("%.4lu %d died\n", time - vars->start, vars->isded);
+			if (i == 0)
+				printf("%.4lu %d died\n", time - vars->start, vars->isded);
+			vars->isded = vars->number + 1;
 			pthread_mutex_unlock(&vars->print);
 		}
 		pthread_mutex_unlock(&vars->stop);
@@ -84,7 +88,9 @@ void	routine_loop(t_var *vars, t_philo *tmp)
 		if (!ft_print_sleep(vars, tmp->id) || ft_print_ded(vars, tmp->id))
 			break ;
 		microrests(vars, tmp->id, vars->tts);
-		if (!ft_print_thinking(vars, tmp->id) || ft_print_ded(vars, tmp->id))
+		if (check_meals(vars) || !ft_print_thinking(vars, tmp->id))
+			break ;
+		if (ft_print_ded(vars, tmp->id))
 			break ;
 	}
 }
@@ -103,7 +109,7 @@ void	grab_forks_eat(t_var *vars, size_t id, t_philo *self)
 	pthread_mutex_lock(fork[0]);
 	if (!ft_print_fork(vars, id) || check_meals(vars))
 	{
-		unlock_lr(fork[1], fork[0]);
+		unlock_lr(fork[1], fork[0], vars, self);
 		return ;
 	}
 	if (!ft_print_eating(vars, id) || check_meals(vars))
@@ -112,10 +118,5 @@ void	grab_forks_eat(t_var *vars, size_t id, t_philo *self)
 	self->last_meal = get_current_time();
 	pthread_mutex_unlock(&vars->stop);
 	microrests(vars, id, vars->tte);
-	unlock_lr(fork[1], fork[0]);
-	pthread_mutex_lock(&vars->stop);
-	self->nb_of_meal++;
-	if (self->nb_of_meal == vars->meals_max)
-		vars->imfull++;
-	pthread_mutex_unlock(&vars->stop);
+	unlock_lr(fork[1], fork[0], vars, self);
 }

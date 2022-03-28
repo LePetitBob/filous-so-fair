@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/26 19:18:12 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/26 19:20:33 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/28 13:54:58 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,16 @@ void	print_ded_unock_lock(t_var *vars, t_philo *tmp)
 	pthread_mutex_unlock(&vars->stop);
 }
 
-void	unlock_lr(pthread_mutex_t *left, pthread_mutex_t *right)
+void	unlock_lr(pthread_mutex_t *left, pthread_mutex_t *right
+	, t_var *vars, t_philo *self)
 {
 	pthread_mutex_unlock(left);
 	pthread_mutex_unlock(right);
+	pthread_mutex_lock(&vars->stop);
+	self->nb_of_meal++;
+	if (self->nb_of_meal == vars->meals_max)
+		vars->imfull++;
+	pthread_mutex_unlock(&vars->stop);
 }
 
 void	decide_first_fork(t_philo *self, pthread_mutex_t *fork[2])
@@ -51,11 +57,8 @@ void	decide_first_fork(t_philo *self, pthread_mutex_t *fork[2])
 
 int	check_meals(t_var *vars)
 {
-	int	i;
-
 	pthread_mutex_lock(&vars->stop);
-	i = vars->number;
-	if (vars->meals_max != 0 && vars->imfull >= i)
+	if (vars->meals_max > 0 && vars->imfull >= vars->number)
 	{
 		pthread_mutex_unlock(&vars->stop);
 		return (1);
