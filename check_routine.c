@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/15 11:47:44 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/26 19:26:51 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/04/04 22:05:14 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,8 +83,8 @@ int	ft_print_sleep(t_var *vars, size_t id)
 	pthread_mutex_lock(&vars->stop);
 	if (vars->isded <= 0)
 	{
-		pthread_mutex_lock(&vars->print);
 		time = get_current_time();
+		pthread_mutex_lock(&vars->print);
 		printf("%.4lu %lu is sleeping\n", time - vars->start, id);
 		pthread_mutex_unlock(&vars->print);
 		pthread_mutex_unlock(&vars->stop);

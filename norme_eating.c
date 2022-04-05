@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/26 19:18:12 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/28 13:54:58 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/04/04 22:38:23 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,16 +43,26 @@ void	unlock_lr(pthread_mutex_t *left, pthread_mutex_t *right
 	pthread_mutex_unlock(&vars->stop);
 }
 
-void	decide_first_fork(t_philo *self, pthread_mutex_t *fork[2])
+void	decide_first_fork(t_philo *self, pthread_mutex_t *fork[2], t_var *vars)
 {
+	int		meals;
+	size_t	nb;
+
+	pthread_mutex_lock(&vars->stop);
+	meals = self->nb_of_meal;
+	nb = vars->number;
+	pthread_mutex_unlock(&vars->stop);
 	fork[0] = &self->prev->fork;
 	fork[1] = &self->fork;
-	if (self->id % 2 == 1)
+	if (self->id == nb)
 	{
 		fork[0] = &self->fork;
 		fork[1] = &self->prev->fork;
 	}
+	if (!meals && self->id % 2 == 1 && self->id != nb)
+		usleep(200);
 	pthread_mutex_lock(fork[1]);
+	pthread_mutex_lock(fork[0]);
 }
 
 int	check_meals(t_var *vars)

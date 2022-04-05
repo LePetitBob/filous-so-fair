@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/26 19:18:12 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/28 14:00:28 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/03/31 19:30:32 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,27 +87,4 @@ void	free_everything(t_var *vars)
 		i--;
 	}
 	free(vars->philo_th);
-}
-
-void	delay_to_sync(t_var *vars, size_t id)
-{
-	int		i;
-	size_t	delay;
-
-	pthread_mutex_lock(&vars->stop);
-	i = vars->number;
-	delay = vars->tte / 2;
-	pthread_mutex_unlock(&vars->stop);
-	if (i % 2 == 0)
-	{
-		if (id % 2 == 0)
-			usleep(delay);
-	}
-	else
-	{
-		if (id % 3 == 0)
-			usleep(delay);
-		if (id % 3 == 2)
-			usleep(delay * 2);
-	}
 }

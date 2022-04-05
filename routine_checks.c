@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/15 11:47:44 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/28 13:58:33 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/04/05 14:30:36 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ int	check_ded(t_var *vars, t_philo *self, size_t id)
 		if (vars->isded < 0)
 			vars->isded = id;
 		pthread_mutex_unlock(&vars->stop);
+		exit(4);
 		return (1);
 	}
 	pthread_mutex_unlock(&vars->stop);

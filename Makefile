@@ -6,13 +6,13 @@
 #    By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/09 17:31:00 by vduriez           #+#    #+#              #
-#    Updated: 2022/03/26 20:01:13 by vduriez          ###   ########.fr        #
+#    Updated: 2022/04/04 22:18:02 by vduriez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pthread #-g3 -fsanitize=undefined -fsanitize=leak -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -pthread -g
 NAME = philo
 INCLUDES = philosophers.h
 SRCS =	main.c check_args.c ft_str.c ft_atoi.c \

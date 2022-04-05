@@ -6,7 +6,7 @@
 /*   By: vduriez <vduriez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/09 17:00:37 by vduriez           #+#    #+#             */
-/*   Updated: 2022/03/28 13:58:41 by vduriez          ###   ########.fr       */
+/*   Updated: 2022/04/04 20:27:11 by vduriez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,8 @@ void				free_everything(t_var *vars);
 void				print_ded_unock_lock(t_var *vars, t_philo *tmp);
 void				unlock_lr(pthread_mutex_t *left, pthread_mutex_t *right,
 						t_var *vars, t_philo *self);
-void				decide_first_fork(t_philo *self, pthread_mutex_t *fork[2]);
-void				delay_to_sync(t_var *vars, size_t id);
+void				decide_first_fork(t_philo *self, pthread_mutex_t *fork[2],
+						t_var *vars);
 void				free_everything(t_var *vars);
 void				ft_addlast(t_var *vars, int id);
 void				only_wan(t_var *vars);
